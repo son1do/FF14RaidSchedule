@@ -1,4 +1,4 @@
-# FF14 固定予定表アプリ (`ff14-schedule`)
+# FF14 固定予定表アプリ (`FF14RaidSchedule`)
 
 FF14の8人固定メンバー（MT / ST / H1 / H2 / D1〜D4）で活動日程を調整するためのWebアプリです。  
 ログイン不要でそのまま入力でき、データは `data/schedule.json` に永続保存されます。
