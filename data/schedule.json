@@ -1,0 +1,69 @@
+{
+  "settings": {
+    "title": "FF14 固定予定表",
+    "defaultTime": "21:00〜24:00",
+    "notice": "毎週火曜リセット基準です。遅刻・早退がある場合はコメントに記入してください。",
+    "weekStartDay": 2
+  },
+  "members": [
+    {
+      "id": "mt",
+      "role": "MT",
+      "roleGroup": "tank",
+      "name": "MT",
+      "job": "暗黒騎士"
+    },
+    {
+      "id": "st",
+      "role": "ST",
+      "roleGroup": "tank",
+      "name": "ST",
+      "job": "ナイト"
+    },
+    {
+      "id": "h1",
+      "role": "H1",
+      "roleGroup": "healer",
+      "name": "H1",
+      "job": "白魔道士"
+    },
+    {
+      "id": "h2",
+      "role": "H2",
+      "roleGroup": "healer",
+      "name": "H2",
+      "job": "学者"
+    },
+    {
+      "id": "d1",
+      "role": "D1",
+      "roleGroup": "dps",
+      "name": "D1",
+      "job": "ヴァイパー"
+    },
+    {
+      "id": "d2",
+      "role": "D2",
+      "roleGroup": "dps",
+      "name": "D2",
+      "job": "リーパー"
+    },
+    {
+      "id": "d3",
+      "role": "D3",
+      "roleGroup": "dps",
+      "name": "D3",
+      "job": "踊り子"
+    },
+    {
+      "id": "d4",
+      "role": "D4",
+      "roleGroup": "dps",
+      "name": "D4",
+      "job": "ピクトマンサー"
+    }
+  ],
+  "entries": {},
+  "confirmedDays": {},
+  "updatedAt": "2026-11-23T23:51:00.000Z"
+}
