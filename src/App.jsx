@@ -405,14 +405,6 @@ export default function App() {
           <button type="button" className="btn btn-ghost" onClick={() => setSettingsModalOpen(true)}>
             設定
           </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => loadData(true)}
-            title="他のメンバーの最新入力を再読み込み"
-          >
-            更新
-          </button>
         </div>
       </header>
 
