@@ -20,8 +20,10 @@ import CellModal from './components/CellModal.jsx';
 import ConfirmDayModal from './components/ConfirmDayModal.jsx';
 import MemberModal from './components/MemberModal.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
+import PersonalScheduleView from './components/PersonalScheduleView.jsx';
 
 const STORAGE_MEMBER_KEY = 'ff14_schedule_active_member';
+const STORAGE_VIEW_KEY = 'ff14_schedule_view_mode';
 const STATUS_CYCLE = ['', 'ok', 'maybe', 'ng'];
 
 function statusSymbol(status) {
@@ -42,6 +44,15 @@ export default function App() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [rangeWeeks, setRangeWeeks] = useState(1);
   const [quickMode, setQuickMode] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_VIEW_KEY);
+      if (saved === 'table' || saved === 'personal') return saved;
+    } catch {
+      // ignore storage errors
+    }
+    return typeof window !== 'undefined' && window.innerWidth <= 720 ? 'personal' : 'table';
+  });
   const [activeMemberId, setActiveMemberId] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_MEMBER_KEY) || '';
@@ -131,6 +142,15 @@ export default function App() {
     try {
       if (next) localStorage.setItem(STORAGE_MEMBER_KEY, next);
       else localStorage.removeItem(STORAGE_MEMBER_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const handleChangeViewMode = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem(STORAGE_VIEW_KEY, mode);
     } catch {
       // ignore storage errors
     }
@@ -481,7 +501,23 @@ export default function App() {
             <span className="stat-pill stat-all-ok">全員○ {rangeStats.allOk}日</span>
             <span className="stat-pill stat-possible">調整可 {rangeStats.allPossible}日</span>
           </div>
-          <div className="segmented">
+          <div className="segmented" role="group" aria-label="表示切替">
+            <button
+              type="button"
+              className={viewMode === 'table' ? 'active' : ''}
+              onClick={() => handleChangeViewMode('table')}
+            >
+              全体表
+            </button>
+            <button
+              type="button"
+              className={viewMode === 'personal' ? 'active' : ''}
+              onClick={() => handleChangeViewMode('personal')}
+            >
+              自分のみ
+            </button>
+          </div>
+          <div className="segmented" role="group" aria-label="表示期間">
             <button
               type="button"
               className={rangeWeeks === 1 ? 'active' : ''}
@@ -500,7 +536,22 @@ export default function App() {
         </div>
       </section>
 
-      <main className="table-wrap">
+      {viewMode === 'personal' ? (
+        <main>
+          <PersonalScheduleView
+            dates={dates}
+            members={data.members}
+            entries={data.entries}
+            confirmedDays={data.confirmedDays}
+            activeMember={activeMember}
+            onSelectMember={handleSelectMember}
+            onQuickSave={handleSaveEntry}
+            onOpenCommentModal={setCellModalTarget}
+            saving={saving}
+          />
+        </main>
+      ) : (
+        <main className="table-wrap">
         <table className="schedule-table">
           <thead>
             <tr>
@@ -638,13 +689,18 @@ export default function App() {
           </tbody>
         </table>
       </main>
+      )}
 
       <footer className="legend">
         <span><strong className="cnt-ok">○</strong> 参加OK</span>
         <span><strong className="cnt-maybe">△</strong> 遅刻・早退・条件付き</span>
         <span><strong className="cnt-ng">×</strong> 参加不可</span>
         <span><strong className="cnt-empty">−</strong> 未入力</span>
-        <span className="legend-hint">※ セルをクリックして予定・コメントを入力できます</span>
+        <span className="legend-hint">
+          {viewMode === 'personal'
+            ? '※ ○/△/× をタップして即保存（同じボタン再タップで未入力に戻せます）'
+            : '※ セルをクリックして予定・コメントを入力できます'}
+        </span>
       </footer>
 
       <CellModal

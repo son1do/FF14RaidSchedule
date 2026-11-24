@@ -801,6 +801,264 @@ textarea {
   color: var(--gold);
 }
 
+/* Personal compact view */
+.personal-empty-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.personal-empty-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.personal-empty-desc {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.personal-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.personal-pick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+
+.personal-pick-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.personal-pick-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.personal-pick-job {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.personal-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.personal-summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.personal-member-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.personal-member-job {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.personal-progress {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid rgba(224, 184, 92, 0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.personal-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 10px;
+}
+
+.personal-day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.personal-day-card.is-today {
+  border-color: rgba(99, 179, 237, 0.55);
+}
+
+.personal-day-card.is-confirmed {
+  background: linear-gradient(180deg, rgba(224, 184, 92, 0.1), var(--surface) 70%);
+  border-color: rgba(224, 184, 92, 0.5);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.personal-day-card.is-all-ok {
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.08), var(--surface) 70%);
+  border-color: rgba(52, 211, 153, 0.4);
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+
+.personal-day-card.is-possible {
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.personal-day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.personal-day-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.personal-day-counts {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.personal-day-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personal-status-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.personal-status-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 9px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.06s;
+}
+
+.personal-status-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.personal-status-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.personal-status-symbol {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.personal-status-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.personal-status-btn.pbtn-ok.selected {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.personal-status-btn.pbtn-maybe.selected {
+  border-color: var(--maybe);
+  background: var(--maybe-bg);
+  color: var(--maybe);
+}
+
+.personal-status-btn.pbtn-ng.selected {
+  border-color: var(--ng);
+  background: var(--ng-bg);
+  color: var(--ng);
+}
+
+.personal-comment-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: rgba(16, 21, 31, 0.55);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.personal-comment-btn:hover {
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.personal-comment-btn.has-comment {
+  border-style: solid;
+  border-color: rgba(224, 184, 92, 0.35);
+  color: var(--text);
+}
+
+.personal-comment-icon {
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.personal-comment-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Legend */
 .legend {
   display: flex;
@@ -1178,5 +1436,9 @@ textarea {
 
   .legend-hint {
     margin-left: 0;
+  }
+
+  .personal-list {
+    grid-template-columns: 1fr;
   }
 }
