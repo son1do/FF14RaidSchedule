@@ -15,6 +15,15 @@ export function createDefaultData() {
       defaultTime: '21:00〜24:00',
       notice: '毎週火曜リセット基準です。遅刻・早退がある場合はコメントに記入してください。',
       weekStartDay: 2, // 2 = Tuesday (FF14 weekly reset), 1 = Monday
+      discord: {
+        enabled: false,
+        mode: 'webhook', // 'webhook' | 'bot'
+        webhookUrl: '',
+        botToken: '',
+        channelId: '',
+        notifyTime: '18:00',
+        mention: '',
+      },
     },
     members: [
       { id: 'mt', role: 'MT', roleGroup: 'tank', name: 'MT', job: '暗黒騎士' },
@@ -30,6 +39,8 @@ export function createDefaultData() {
     entries: {},
     // confirmedDays[date] = { confirmed: boolean, time: string, note: string }
     confirmedDays: {},
+    // notifiedDays[date] = { sentAt: string, notifyTime: string }
+    notifiedDays: {},
     updatedAt: new Date().toISOString(),
   };
 }
@@ -53,12 +64,20 @@ export async function readSchedule() {
     const parsed = JSON.parse(raw);
     const defaults = createDefaultData();
     return {
-      settings: { ...defaults.settings, ...(parsed.settings || {}) },
+      settings: {
+        ...defaults.settings,
+        ...(parsed.settings || {}),
+        discord: {
+          ...defaults.settings.discord,
+          ...(parsed.settings?.discord || {}),
+        },
+      },
       members: Array.isArray(parsed.members) && parsed.members.length === 8
         ? parsed.members
         : defaults.members,
       entries: parsed.entries && typeof parsed.entries === 'object' ? parsed.entries : {},
       confirmedDays: parsed.confirmedDays && typeof parsed.confirmedDays === 'object' ? parsed.confirmedDays : {},
+      notifiedDays: parsed.notifiedDays && typeof parsed.notifiedDays === 'object' ? parsed.notifiedDays : {},
       updatedAt: parsed.updatedAt || new Date().toISOString(),
     };
   } catch {

@@ -42,6 +42,12 @@ export function updateConfirmedDay(date, payload) {
   });
 }
 
+export function sendDiscordTest() {
+  return request('/api/discord/test', {
+    method: 'POST',
+  });
+}
+
 export function subscribeScheduleEvents({ onSchedule, onStatusChange }) {
   if (typeof EventSource === 'undefined') {
     onStatusChange?.('unsupported');

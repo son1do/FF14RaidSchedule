@@ -1133,6 +1133,115 @@ textarea {
   padding: 16px 18px;
 }
 
+.modal-body-scroll {
+  max-height: calc(90vh - 70px);
+  overflow-y: auto;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.segmented-full {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+.discord-section {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(16, 21, 31, 0.7);
+  border: 1px solid var(--border);
+}
+
+.discord-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.discord-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.discord-section-desc {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.switch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.label-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.label-with-badge label {
+  margin-bottom: 0;
+}
+
+.cred-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--ok-bg);
+  color: var(--ok);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.secret-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.discord-test-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.test-feedback {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.test-feedback.ok {
+  color: var(--ok);
+}
+
+.test-feedback.err {
+  color: var(--ng);
+}
+
 .status-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1439,6 +1548,10 @@ textarea {
   }
 
   .personal-list {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row-2 {
     grid-template-columns: 1fr;
   }
 }

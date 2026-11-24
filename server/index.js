@@ -4,6 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readSchedule, mutateSchedule, VALID_STATUSES } from './store.js';
+import {
+  isValidNotifyTime,
+  sanitizeDiscordForClient,
+  buildTestMessage,
+  sendDiscordMessage,
+  startDiscordScheduler,
+} from './discord.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
@@ -16,9 +23,19 @@ app.use(express.json({ limit: '256kb' }));
 
 const sseClients = new Set();
 
+function sanitizeScheduleForClient(data) {
+  return {
+    ...data,
+    settings: {
+      ...data.settings,
+      discord: sanitizeDiscordForClient(data.settings?.discord),
+    },
+  };
+}
+
 function broadcastSchedule(data) {
   if (sseClients.size === 0) return;
-  const payload = `event: schedule\ndata: ${JSON.stringify(data)}\n\n`;
+  const payload = `event: schedule\ndata: ${JSON.stringify(sanitizeScheduleForClient(data))}\n\n`;
   for (const res of sseClients) {
     try {
       res.write(payload);
@@ -65,7 +82,7 @@ app.get('/api/events', (req, res) => {
 app.get('/api/schedule', async (_req, res) => {
   try {
     const data = await readSchedule();
-    res.json(data);
+    res.json(sanitizeScheduleForClient(data));
   } catch (err) {
     console.error('GET /api/schedule error:', err);
     res.status(500).json({ error: 'スケジュールデータの読み込みに失敗しました。' });
@@ -74,7 +91,7 @@ app.get('/api/schedule', async (_req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { title, defaultTime, notice, weekStartDay } = req.body || {};
+    const { title, defaultTime, notice, weekStartDay, discord } = req.body || {};
     const updated = await mutateSchedule((data) => {
       const nextSettings = { ...data.settings };
       if (typeof title === 'string' && title.trim()) {
@@ -89,13 +106,55 @@ app.put('/api/settings', async (req, res) => {
       if (weekStartDay === 1 || weekStartDay === 2 || weekStartDay === 0) {
         nextSettings.weekStartDay = weekStartDay;
       }
+      if (discord && typeof discord === 'object') {
+        const prevDiscord = data.settings?.discord || {};
+        const nextDiscord = { ...prevDiscord };
+        if (typeof discord.enabled === 'boolean') {
+          nextDiscord.enabled = discord.enabled;
+        }
+        if (discord.mode === 'webhook' || discord.mode === 'bot') {
+          nextDiscord.mode = discord.mode;
+        }
+        if (discord.clearWebhookUrl) {
+          nextDiscord.webhookUrl = '';
+        } else if (typeof discord.webhookUrl === 'string' && discord.webhookUrl.trim()) {
+          nextDiscord.webhookUrl = cleanString(discord.webhookUrl, 300);
+        }
+        if (discord.clearBotToken) {
+          nextDiscord.botToken = '';
+        } else if (typeof discord.botToken === 'string' && discord.botToken.trim()) {
+          nextDiscord.botToken = cleanString(discord.botToken, 200);
+        }
+        if (typeof discord.channelId === 'string') {
+          nextDiscord.channelId = cleanString(discord.channelId, 30);
+        }
+        if (isValidNotifyTime(discord.notifyTime)) {
+          nextDiscord.notifyTime = discord.notifyTime;
+        }
+        if (typeof discord.mention === 'string') {
+          nextDiscord.mention = cleanString(discord.mention, 60);
+        }
+        nextSettings.discord = nextDiscord;
+      }
       return { ...data, settings: nextSettings };
     });
     broadcastSchedule(updated);
-    res.json(updated);
+    res.json(sanitizeScheduleForClient(updated));
   } catch (err) {
     console.error('PUT /api/settings error:', err);
     res.status(500).json({ error: '設定の保存に失敗しました。' });
+  }
+});
+
+app.post('/api/discord/test', async (_req, res) => {
+  try {
+    const data = await readSchedule();
+    const payload = buildTestMessage(data);
+    await sendDiscordMessage(data.settings?.discord, payload);
+    res.json({ ok: true, message: 'Discordへテスト通知を送信しました！' });
+  } catch (err) {
+    console.error('POST /api/discord/test error:', err);
+    res.status(400).json({ error: err.message || 'テスト通知の送信に失敗しました。' });
   }
 });
 
@@ -122,7 +181,7 @@ app.put('/api/members/:id', async (req, res) => {
       return res.status(404).json({ error: '指定されたメンバーが見つかりません。' });
     }
     broadcastSchedule(updated);
-    res.json(updated);
+    res.json(sanitizeScheduleForClient(updated));
   } catch (err) {
     console.error('PUT /api/members/:id error:', err);
     res.status(500).json({ error: 'メンバー情報の保存に失敗しました。' });
@@ -177,7 +236,7 @@ app.put('/api/entries', async (req, res) => {
     });
 
     broadcastSchedule(updated);
-    res.json(updated);
+    res.json(sanitizeScheduleForClient(updated));
   } catch (err) {
     console.error('PUT /api/entries error:', err);
     res.status(500).json({ error: '予定の保存に失敗しました。' });
@@ -194,8 +253,10 @@ app.put('/api/confirmed/:date', async (req, res) => {
     const { confirmed, time, note } = req.body || {};
     const updated = await mutateSchedule((data) => {
       const nextConfirmed = { ...data.confirmedDays };
+      const nextNotified = { ...(data.notifiedDays || {}) };
       if (!confirmed) {
         delete nextConfirmed[date];
+        delete nextNotified[date];
       } else {
         nextConfirmed[date] = {
           confirmed: true,
@@ -203,11 +264,11 @@ app.put('/api/confirmed/:date', async (req, res) => {
           note: cleanString(note ?? '', 60),
         };
       }
-      return { ...data, confirmedDays: nextConfirmed };
+      return { ...data, confirmedDays: nextConfirmed, notifiedDays: nextNotified };
     });
 
     broadcastSchedule(updated);
-    res.json(updated);
+    res.json(sanitizeScheduleForClient(updated));
   } catch (err) {
     console.error('PUT /api/confirmed/:date error:', err);
     res.status(500).json({ error: '活動確定日の保存に失敗しました。' });
@@ -226,5 +287,10 @@ if (fs.existsSync(DIST_DIR)) {
 
 app.listen(PORT, () => {
   console.log(`FF14 Schedule server running at http://localhost:${PORT}`);
+  startDiscordScheduler({
+    readSchedule,
+    mutateSchedule,
+    onScheduleUpdated: broadcastSchedule,
+  });
 });
 

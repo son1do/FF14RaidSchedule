@@ -5,6 +5,7 @@ import {
   updateMember,
   updateEntries,
   updateConfirmedDay,
+  sendDiscordTest,
   subscribeScheduleEvents,
 } from './api/client.js';
 import {
@@ -301,18 +302,28 @@ export default function App() {
     }
   };
 
-  const handleSaveSettings = async (settings) => {
+  const handleSaveSettings = async (settings, { keepOpen = false } = {}) => {
     setSaving(true);
     try {
       const updated = await updateSettings(settings);
       setData(updated);
-      setSettingsModalOpen(false);
-      showToast('設定を保存しました');
+      if (!keepOpen) {
+        setSettingsModalOpen(false);
+        showToast('設定を保存しました');
+      }
+      return true;
     } catch (err) {
       showToast(err.message || '設定の保存に失敗しました');
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleTestDiscord = async () => {
+    const res = await sendDiscordTest();
+    showToast(res.message || 'Discordへテスト通知を送信しました');
+    return res;
   };
 
   const handleCopyDiscord = async () => {
@@ -731,6 +742,7 @@ export default function App() {
         settings={data.settings}
         onClose={() => setSettingsModalOpen(false)}
         onSave={handleSaveSettings}
+        onTestDiscord={handleTestDiscord}
         saving={saving}
       />
 
