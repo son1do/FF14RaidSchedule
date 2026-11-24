@@ -184,6 +184,19 @@ export default function App() {
     return { confirmed, allOk, allPossible };
   }, [data, dates]);
 
+  const confirmedDayNumbers = useMemo(() => {
+    if (!data?.confirmedDays) return {};
+    const sorted = Object.entries(data.confirmedDays)
+      .filter(([, v]) => Boolean(v?.confirmed))
+      .map(([dateKey]) => dateKey)
+      .sort();
+    const map = {};
+    sorted.forEach((dateKey, idx) => {
+      map[dateKey] = idx + 1;
+    });
+    return map;
+  }, [data]);
+
   const handleSaveEntry = async (item) => {
     setSaving(true);
     try {
@@ -546,6 +559,7 @@ export default function App() {
             members={data.members}
             entries={data.entries}
             confirmedDays={data.confirmedDays}
+            confirmedDayNumbers={confirmedDayNumbers}
             activeMember={activeMember}
             onSelectMember={handleSelectMember}
             onQuickSave={handleSaveEntry}
@@ -607,6 +621,11 @@ export default function App() {
                         </span>
                         {d.isToday && <span className="mini-tag tag-today">今日</span>}
                         {d.isResetDay && <span className="mini-tag tag-reset">リセット</span>}
+                        {confirmedDayNumbers[d.key] && (
+                          <span className="mini-tag tag-activity-day">
+                            活動{confirmedDayNumbers[d.key]}日目
+                          </span>
+                        )}
                       </div>
                       {isConfirmed && (
                         <div className="confirmed-meta">

@@ -615,6 +615,12 @@ textarea {
   color: #c4b5fd;
 }
 
+.tag-activity-day {
+  background: var(--gold-soft);
+  color: var(--gold);
+  border: 1px solid rgba(224, 184, 92, 0.4);
+}
+
 .confirmed-meta {
   display: flex;
   flex-wrap: wrap;

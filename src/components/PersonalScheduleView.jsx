@@ -11,6 +11,7 @@ export default function PersonalScheduleView({
   members,
   entries,
   confirmedDays,
+  confirmedDayNumbers = {},
   activeMember,
   onSelectMember,
   onQuickSave,
@@ -103,6 +104,11 @@ export default function PersonalScheduleView({
                     </span>
                     {d.isToday && <span className="mini-tag tag-today">今日</span>}
                     {d.isResetDay && <span className="mini-tag tag-reset">リセット</span>}
+                    {confirmedDayNumbers[d.key] && (
+                      <span className="mini-tag tag-activity-day">
+                        活動{confirmedDayNumbers[d.key]}日目
+                      </span>
+                    )}
                     {summary.allOk && <span className="match-badge match-ok">全員○</span>}
                     {!summary.allOk && summary.allPossible && (
                       <span className="match-badge match-maybe">調整可</span>
