@@ -14,6 +14,20 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '256kb' }));
 
+const sseClients = new Set();
+
+function broadcastSchedule(data) {
+  if (sseClients.size === 0) return;
+  const payload = `event: schedule\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const res of sseClients) {
+    try {
+      res.write(payload);
+    } catch {
+      sseClients.delete(res);
+    }
+  }
+}
+
 function cleanString(value, maxLen = 200) {
   if (typeof value !== 'string') return '';
   return value.trim().slice(0, maxLen);
@@ -21,6 +35,31 @@ function cleanString(value, maxLen = 200) {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get('/api/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+
+  sseClients.add(res);
+  res.write(`event: connected\ndata: ${JSON.stringify({ ok: true })}\n\n`);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
 });
 
 app.get('/api/schedule', async (_req, res) => {
@@ -52,6 +91,7 @@ app.put('/api/settings', async (req, res) => {
       }
       return { ...data, settings: nextSettings };
     });
+    broadcastSchedule(updated);
     res.json(updated);
   } catch (err) {
     console.error('PUT /api/settings error:', err);
@@ -81,6 +121,7 @@ app.put('/api/members/:id', async (req, res) => {
     if (!found) {
       return res.status(404).json({ error: '指定されたメンバーが見つかりません。' });
     }
+    broadcastSchedule(updated);
     res.json(updated);
   } catch (err) {
     console.error('PUT /api/members/:id error:', err);
@@ -135,6 +176,7 @@ app.put('/api/entries', async (req, res) => {
       return { ...data, entries: nextEntries };
     });
 
+    broadcastSchedule(updated);
     res.json(updated);
   } catch (err) {
     console.error('PUT /api/entries error:', err);
@@ -164,6 +206,7 @@ app.put('/api/confirmed/:date', async (req, res) => {
       return { ...data, confirmedDays: nextConfirmed };
     });
 
+    broadcastSchedule(updated);
     res.json(updated);
   } catch (err) {
     console.error('PUT /api/confirmed/:date error:', err);

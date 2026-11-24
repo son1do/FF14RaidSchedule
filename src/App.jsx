@@ -5,6 +5,7 @@ import {
   updateMember,
   updateEntries,
   updateConfirmedDay,
+  subscribeScheduleEvents,
 } from './api/client.js';
 import {
   addDays,
@@ -36,6 +37,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
+  const [syncStatus, setSyncStatus] = useState('connecting');
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [rangeWeeks, setRangeWeeks] = useState(1);
@@ -63,22 +65,65 @@ export default function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
+  const applySchedule = useCallback((nextSchedule) => {
+    setData((prev) => {
+      if (prev?.updatedAt && nextSchedule?.updatedAt && nextSchedule.updatedAt < prev.updatedAt) {
+        return prev;
+      }
+      return nextSchedule;
+    });
+  }, []);
+
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError('');
     try {
       const schedule = await fetchSchedule();
-      setData(schedule);
+      applySchedule(schedule);
     } catch (err) {
-      setError(err.message || 'データの取得に失敗しました。');
+      if (!silent) {
+        setError(err.message || 'データの取得に失敗しました。');
+      }
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [applySchedule]);
 
   useEffect(() => {
     loadData(false);
   }, [loadData]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeScheduleEvents({
+      onSchedule: (nextSchedule) => {
+        applySchedule(nextSchedule);
+      },
+      onStatusChange: (status, isReconnect) => {
+        setSyncStatus(status);
+        if (status === 'connected' && isReconnect) {
+          loadData(true);
+        }
+      },
+    });
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData(true);
+      }
+    };
+    const handleOnline = () => {
+      loadData(true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [applySchedule, loadData]);
 
   const handleSelectMember = (memberId) => {
     const next = activeMemberId === memberId ? '' : memberId;
@@ -309,6 +354,17 @@ export default function App() {
         </div>
 
         <div className="topbar-actions">
+          <span
+            className={`sync-pill sync-${syncStatus}`}
+            title="他のメンバーの更新を自動で反映します"
+          >
+            <span className="sync-dot" />
+            {syncStatus === 'connected'
+              ? '自動同期中'
+              : syncStatus === 'reconnecting'
+                ? '再接続中...'
+                : '接続中...'}
+          </span>
           <button type="button" className="btn btn-secondary" onClick={handleCopyDiscord}>
             Discord用にコピー
           </button>

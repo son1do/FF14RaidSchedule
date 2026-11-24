@@ -42,3 +42,36 @@ export function updateConfirmedDay(date, payload) {
   });
 }
 
+export function subscribeScheduleEvents({ onSchedule, onStatusChange }) {
+  if (typeof EventSource === 'undefined') {
+    onStatusChange?.('unsupported');
+    return () => {};
+  }
+
+  let hasConnectedOnce = false;
+  const es = new EventSource('/api/events');
+
+  es.addEventListener('connected', () => {
+    const isReconnect = hasConnectedOnce;
+    hasConnectedOnce = true;
+    onStatusChange?.('connected', isReconnect);
+  });
+
+  es.addEventListener('schedule', (event) => {
+    try {
+      const next = JSON.parse(event.data);
+      onSchedule?.(next);
+    } catch {
+      // ignore malformed payload
+    }
+  });
+
+  es.onerror = () => {
+    onStatusChange?.('reconnecting', false);
+  };
+
+  return () => {
+    es.close();
+  };
+}
+

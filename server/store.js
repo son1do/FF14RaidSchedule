@@ -86,8 +86,9 @@ export function mutateSchedule(mutator) {
   const task = writeQueue.then(async () => {
     const current = await readSchedule();
     const next = await mutator(current);
-    await writeScheduleRaw(next);
-    return next;
+    const stamped = { ...next, updatedAt: new Date().toISOString() };
+    await writeScheduleRaw(stamped);
+    return stamped;
   });
   writeQueue = task.catch(() => {});
   return task;
