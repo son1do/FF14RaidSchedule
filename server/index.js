@@ -11,6 +11,7 @@ import {
   sendDiscordMessage,
   startDiscordScheduler,
 } from './discord.js';
+import { syncDiscordBot } from './discordBot.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
@@ -139,6 +140,9 @@ app.put('/api/settings', async (req, res) => {
       return { ...data, settings: nextSettings };
     });
     broadcastSchedule(updated);
+    syncDiscordBot({ readSchedule }).catch((err) => {
+      console.error('[Discord Bot] Sync error:', err.message || err);
+    });
     res.json(sanitizeScheduleForClient(updated));
   } catch (err) {
     console.error('PUT /api/settings error:', err);
@@ -291,6 +295,9 @@ app.listen(PORT, () => {
     readSchedule,
     mutateSchedule,
     onScheduleUpdated: broadcastSchedule,
+  });
+  syncDiscordBot({ readSchedule }).catch((err) => {
+    console.error('[Discord Bot] Startup sync error:', err.message || err);
   });
 });
 
